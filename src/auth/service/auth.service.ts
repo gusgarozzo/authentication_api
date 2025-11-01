@@ -59,7 +59,6 @@ export class AuthService {
     createdAt: Date;
   }> {
     try {
-      console.log(this.saltRounds);
       const normalizedEmail = (email || '').trim().toLowerCase();
       if (!normalizedEmail || !password || password.length < 6) {
         throw new BadRequestException(
