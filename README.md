@@ -62,5 +62,7 @@ La base de datos utilizada es SQLite. El archivo de la base de datos se encuentr
 
 ## En Desarrollo
 
+- Roles de usuario
+- Posibilidad de añadir ávatar al usuario (URL de imagen o file -> Upload de la img a una instancia AWS S3 para obtener la URL)
 - Test unitarios
 - Swagger
