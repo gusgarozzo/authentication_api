@@ -136,6 +136,49 @@ export class AuthService {
         email: user.email,
         role: user.role,
       };
+
+      const { accessToken, refreshToken } = this.getJwtSignedTokens(payload);
+
+      await this.hashRefreshTokenAndUpdateRegister(refreshToken, user);
+
+      return {
+        accessToken,
+        refreshToken,
+      };
+    } catch (error) {
+      this.logger.error(
+        `Error generating tokens: ${error.message}`,
+        error.stack,
+      );
+      throw error;
+    }
+  }
+
+  private async hashRefreshTokenAndUpdateRegister(
+    refreshToken: string,
+    user: User,
+  ): Promise<void> {
+    try {
+      const hashedRefreshToken = await bcrypt.hash(
+        refreshToken,
+        this.saltRounds,
+      );
+
+      await this.userRepository.update(user.id, {
+        refreshTokenHash: hashedRefreshToken,
+        lastLogin: new Date(),
+      });
+    } catch (error) {
+      this.logger.error(
+        `Error hashing refresh token: ${error.message}`,
+        error.stack,
+      );
+      throw error;
+    }
+  }
+
+  private getJwtSignedTokens(payload: JwtPayload): IGeneratedTokens {
+    try {
       const accessToken = this.jwtService.sign<JwtPayload>(payload, {
         secret: this.secretKey,
         expiresIn: this.tokenExpiration,
@@ -146,23 +189,10 @@ export class AuthService {
         expiresIn: this.refreshTokenExpiration,
       });
 
-      const hashedRefreshToken = await bcrypt.hash(
-        refreshToken,
-        this.saltRounds,
-      );
-
-      await this.userRepository.update(user.id, {
-        refreshTokenHash: hashedRefreshToken,
-        lastLogin: new Date(),
-      });
-
-      return {
-        accessToken,
-        refreshToken,
-      };
+      return { accessToken, refreshToken };
     } catch (error) {
       this.logger.error(
-        `Error generating tokens: ${error.message}`,
+        `Error at jwt sign service: ${error.message}`,
         error.stack,
       );
       throw error;
