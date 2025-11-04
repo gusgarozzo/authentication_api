@@ -14,6 +14,7 @@ import * as bcrypt from 'bcrypt';
 import { JwtPayload } from '../interfaces/jwtPayload.interface';
 import { LoginDto } from '../dto/login.dto';
 import { IGeneratedTokens } from '../interfaces/generatedTokens.interface';
+import { IRegisterUserResponse } from '../interfaces/userResponse.interface';
 
 @Injectable()
 export class AuthService {
@@ -52,17 +53,18 @@ export class AuthService {
     email: string,
     password: string,
     name: string,
-  ): Promise<{
-    id: string;
-    email: string;
-    name?: string;
-    createdAt: Date;
-  }> {
+  ): Promise<IRegisterUserResponse> {
     try {
       const normalizedEmail = (email || '').trim().toLowerCase();
       if (!normalizedEmail || !password || password.length < 6) {
         throw new BadRequestException(
           'Invalid email or password (length must be at least 6 characters)',
+        );
+      }
+
+      if (!this.isPasswordSecure(password)) {
+        throw new BadRequestException(
+          'Password must have at least 8 characters, including uppercase, lowercase, number, and symbol',
         );
       }
 
@@ -93,6 +95,13 @@ export class AuthService {
       );
       throw error;
     }
+  }
+
+  private isPasswordSecure(password: string): Boolean {
+    const regex =
+      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&._-])[A-Za-z\d@$!%*?&._-]{8,}$/;
+
+    return regex.test(password);
   }
 
   async validateUser(email: string, password: string): Promise<User | null> {
