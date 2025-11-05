@@ -7,7 +7,7 @@ import {
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
-import { User } from 'src/entities/user.entity';
+import { User } from '../../entities/user.entity';
 import { ConfigService } from '@nestjs/config';
 import { Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
@@ -19,11 +19,11 @@ import { IRegisterUserResponse } from '../interfaces/userResponse.interface';
 @Injectable()
 export class AuthService {
   private readonly logger = new Logger(AuthService.name);
-  private readonly saltRounds: number;
-  private readonly secretKey: string;
-  private readonly tokenExpiration: number;
-  private readonly refreshTokenExpiration: number;
-  private readonly refreshTokenSecret: string;
+  private saltRounds: number;
+  private secretKey: string;
+  private tokenExpiration: number;
+  private refreshTokenExpiration: number;
+  private refreshTokenSecret: string;
 
   constructor(
     @InjectRepository(User)
@@ -31,6 +31,10 @@ export class AuthService {
     private readonly configService: ConfigService,
     private readonly jwtService: JwtService,
   ) {
+    this.initialize();
+  }
+
+  private initialize(): void {
     this.saltRounds = parseInt(
       this.configService.get<string>('BCRYPT_SALT_ROUNDS') || '10',
       10,
